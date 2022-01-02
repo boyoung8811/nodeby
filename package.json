@@ -1,0 +1,32 @@
+{
+  "name": "nodeby",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/init.js",
+  "scripts": {
+    "babel-node": "babel-node --presets='@babel/preset-env' --ignore='foo|bar|baz'",
+    "dev": "nodemon --exec npx babel-node src/init.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boyoung8811/nodeby.git"
+  },
+  "author": "boyoung",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/boyoung8811/nodeby/issues"
+  },
+  "homepage": "https://github.com/boyoung8811/nodeby#readme",
+  "dependencies": {
+    "express": "^4.17.2",
+    "mongoose": "^6.1.4",
+    "morgan": "^1.10.0",
+    "pug": "^3.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.5",
+    "@babel/node": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "nodemon": "^2.0.15"
+  }
+}
