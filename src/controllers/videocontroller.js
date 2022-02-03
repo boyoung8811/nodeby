@@ -1,18 +1,7 @@
 import movieModel from "../models/video";
 
-/*
-console.log("start")
-movieModel.find({}, (error, videos) => {
-  if(error) {
-    return res.render("sever-error")
-  }
-  return res.render("home", { pageTitle: "Home", videos});
-});
-console.log("finished")
-*/
-
   export const home = async (req, res) => {
-    const videos = await movieModel.find({});
+    const videos = await movieModel.find({}).sort({ createAt: "desc"});
     return res.render("home", { pageTitle: "Home", videos });
   };
 
@@ -31,20 +20,22 @@ export const getEdit = async (req, res) => {
   if(!video){
     return res.render("404", {pageTitle: "Video not found"});
   }
-  return res.render("edit", { pageTitle: `Edit: ${video.title}`, video });
+  return res.render("edit", { pageTitle: `Edit: ${video.title}`, video});
 };
 
 export const postEdit = async (req, res) => {
   const { id } = req.params;
-  const video = await movieModel.findById(id);
   const { title, description, hashtags } = req.body;
+  const video = await movieModel.exists({ _id: id });
   if(!video){
     return res.render("404", {pageTitle: "Video not found", video});
   }
-  video.title = title;
-  video.description = description;
-  video.hashtags = hashtags.split(",").map(word => `#${word}`);
-  await video.save();
+  await movieModel.findByIdAndUpdate(id, {
+    title,
+    description,
+    hashtags: movieModel.formatHashtags(hashtags),
+
+  });
   return res.redirect(`/videos/${id}`);
 };
 
@@ -58,11 +49,7 @@ export const postUpload = async (req, res) => {
     await movieModel.create ({
     title,
     description,
-    hashtags: hashtags.split(",").map(word => `#${word}`),
-    meta: {
-      views: 0,
-      rating: 0,
-    },
+    hashtags: movieModel.formatHashtags(hashtags),
   });
   return res.redirect("/");
 } catch(error) {
@@ -70,3 +57,22 @@ export const postUpload = async (req, res) => {
   return res.render("upload", { pageTitle: "Upload Video", errorMessage: error.message, });
 }
 };
+
+export const deleteVideo = async (req,res) => {
+  const { id } = req.params;
+  await movieModel.findByIdAndDelete(id);
+  return res.redirect("/");
+};
+
+
+export const search = async (req,res) => {
+  const { keyword } = req.query;
+  let videos = [];
+  if (keyword) {
+    const videos = await movieModel.find({
+      title: keyword,
+    });
+    console.log(videos);
+  }
+  return res.render("search", {pageTitle: "Search Video", videos });
+}
