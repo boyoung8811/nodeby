@@ -1,5 +1,6 @@
 import "./db";
 import "./models/video";
+import "./models/user";
 import app from "./app";
 
 const PORT = 5000;
