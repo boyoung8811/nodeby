@@ -1,4 +1,5 @@
 import byUser from "../models/user";
+import kakaoUser from "../models/user";
 import fetch from "cross-fetch";
 import bcrypt from "bcrypt";
 import { redirect } from "express/lib/response";
@@ -108,7 +109,6 @@ export const finishGithubLogin = async (req,res) => {
             }
         }
         )).json();
-        console.log(userData);
         const emailData = await (
             await fetch(`${apiUrl}/user/emails`, {
                 headers: {
@@ -142,8 +142,59 @@ export const finishGithubLogin = async (req,res) => {
     }
 };
 
+export const startKakaoLogin = (req,res) => {
+    const baseKakaoUrl = "https://kauth.kakao.com/oauth/authorize";
+    const config = {
+        client_id: process.env.KA_RESTAPI,
+        redirect_uri:"http://localhost:5000/users/kakao/finish",
+        response_type:"code",
+        scope:"profile_nickname account_email profile_image",
+    };
+    const kakaoParams = new URLSearchParams(config).toString();
+    const finalKakaoUrl = `${baseKakaoUrl}?${kakaoParams}`;
+    
+    return res.redirect(finalKakaoUrl);
+};
+
+export const finishKakaoLogin = async (req,res) => {
+    const baseKakaoUrl = "https://kauth.kakao.com/oauth/token";
+    const config = {
+        grant_type:"authorization_code",
+        redirect_uri:"http://localhost:5000/users/kakao/finish",
+        client_id: process.env.KA_RESTAPI,
+        client_secret: process.env.KA_SECRET,
+        code: req.query.code,
+    };
+    const kakaoParams = new URLSearchParams(config).toString();
+    const finalKakaoUrl = `${baseKakaoUrl}?${kakaoParams}`;
+    const tokenRequest = await (await fetch(finalKakaoUrl, {
+          method: "POST",
+          headers: {
+            "Content-type": "application/x-www-form-urlencoded",
+          },
+        })).json();
+    if ("access_token" in tokenRequest) {
+        // access token 있는 경우 api 접근
+        const { access_token } = tokenRequest;
+        const dataUser = await (await fetch("https://kapi.kakao.com/v2/user/me",{
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded",
+                Authorization: `Bearer ${access_token}`,
+            }
+        })).json();
+        console.log(dataUser);
+    }
+    else {
+        return res.redirect("/login");
+    }
+};
 export const logout = (req,res) => {
     req.session.destroy();
     return res.redirect("/");
 }
+
+export const getEdit = (req,res) => {
+    return res.render("edit-profile", {pagetitle:"Edit Profile"});
+}
+
 export const see = (req,res) => res.send("see");
